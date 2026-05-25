@@ -1,1 +1,0 @@
-pico pal q lee
