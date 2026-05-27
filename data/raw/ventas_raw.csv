@@ -2,11 +2,11 @@ id,fecha,producto,cantidad,precio,ciudad
 1,2026-05-10,Aceite CBD 5%,2,25000,Santiago
 2,2026-05-11,Flores THC 10%,5,40000,Valparaíso
 3,2026-05-12,Cápsulas CBN,1,15000,Concepción
+4,2026-05-13,Aceite CBD 10%,3,30000,La Serena
+5,2026-05-14,Flores THC 20%,4,45000,Antofagasta
+6,2026-05-15,Cápsulas CBN 25%,2,18000,Rancagua
 1,2026-05-10,Aceite CBD 5%,2,25000,Santiago
 2,2026-05-11,Flores THC 10%,5,40000,Valparaíso
 3,2026-05-12,Cápsulas CBN,1,15000,Concepción
-4,,Aceite CBD 5%,1,25000,La Serena
-5,2026-05-14,Flores THC 10%,0,30000,Antofagasta
-6,2026-05-15,,3,15000,Rancagua
-7,2026-05-16,Cápsulas CBN,2,15000,
-8,2026-05-17,Aceite CBD 5%,1,abc,Talca
+7,,Aceite CBD 5%,1,25000,La Serena
+8,2026-05-17,Cápsulas CBN,2,15000,
