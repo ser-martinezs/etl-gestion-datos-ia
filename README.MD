@@ -43,6 +43,7 @@ docker run --rm \
   -v "$(pwd)/logs:/app/logs" \
   -v "$(pwd)/data:/app/data" \
   etl-ventas:latest
+```
 
 ### Ejecucion en Linux (SELinux)
 
@@ -54,8 +55,6 @@ docker run --rm \
   etl-ventas:latest
 ```
 ### Ejecución en Windows (PowerShell)
-
-Para ejecutar el contenedor en PowerShell, asegúrate de estar en la raíz de tu proyecto y ejecuta el siguiente comando:
 
 ```powershell
 docker run --rm `
