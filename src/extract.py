@@ -3,7 +3,8 @@ import os
 
 from logging_utils import get_process_logger
 
-output_dir = "../data/raw"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+output_dir = os.path.join(BASE_DIR, "..", "data", "raw")
 output_file = os.path.join(output_dir, "ventas_raw.csv")
 
 logger = get_process_logger("extract", "extract.log")
@@ -29,6 +30,7 @@ headers = ["id", "fecha", "producto", "cantidad", "precio", "ciudad"]
 def generar_csv_ventas():
     try:
         logger.info("Iniciando extracción de ventas.")
+        os.makedirs(output_dir, exist_ok=True)
         with open(output_file, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             writer.writerow(headers)

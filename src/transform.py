@@ -4,10 +4,12 @@ import pandas as pd
 
 from logging_utils import get_process_logger
 
-RAW_FILE = os.path.join("..", "data", "raw", "ventas_raw.csv")
-PROCESSED_FILE = os.path.join("..", "data", "processed", "ventas_procesadas.csv")
-VALID_FILE = os.path.join("..", "data", "processed", "ventas_validas.csv")
-INVALID_FILE = os.path.join("..", "data", "processed", "ventas_invalidas.csv")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+RAW_FILE = os.path.join(BASE_DIR, "..", "data", "raw", "ventas_raw.csv")
+PROCESSED_FILE = os.path.join(BASE_DIR, "..", "data", "processed", "ventas_procesadas.csv")
+VALID_FILE = os.path.join(BASE_DIR, "..", "data", "processed", "ventas_validas.csv")
+INVALID_FILE = os.path.join(BASE_DIR, "..", "data", "processed", "ventas_invalidas.csv")
 
 EXPECTED_COLUMNS = ["id", "fecha", "producto", "cantidad", "precio", "ciudad"]
 REQUIRED_CLEAN_COLUMNS = ["fecha", "producto", "cantidad", "precio", "ciudad"]
