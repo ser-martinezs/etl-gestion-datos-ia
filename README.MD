@@ -3,11 +3,25 @@
 1. Generar los datos crudos con `python src/extract.py`.
 2. Limpiar y validar con `python src/transform.py`.
 3. Cargar en Supabase con `python src/load.py`.
-4. Ejecutar todo junto con `python src/pipeline.py`.
+o
+Ejecutar todo en conjunto con `python src/pipeline.py`.
 
 ## Variables de entorno
 
-Usa `.env` con las variables de Supabase o define `SUPABASE_DATABASE_URL`.
+### Opción A: URL de Conexión Directa (Recomendada)
+
+```env
+SUPABASE_DATABASE_URL=postgresql://postgres:[TU_CONTRASEÑA]@[TU_SUBDOMINIO].supabase.co:5432/postgres?sslmode=require
+```
+
+## Opción B: Componentes
+```env
+DB_HOST=aws-0-[REGINA].supabase.co
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=TU_CONTRASEÑA_SECRETA
+DB_PORT=5432
+```
 
 ## Docker
 
