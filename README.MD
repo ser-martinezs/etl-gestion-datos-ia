@@ -35,6 +35,17 @@ docker build -t etl-ventas:latest .
 
 Prueba el ETL en local con SQLite:
 
+### Linux Estándar (Ubuntu, Debian, Mint)
+
+```bash
+docker run --rm \
+  -e DATABASE_URL=sqlite:////app/data/etl.db \
+  -v "$(pwd)/logs:/app/logs" \
+  -v "$(pwd)/data:/app/data" \
+  etl-ventas:latest
+
+### Ejecucion en Linux (SELinux)
+
 ```bash
 docker run --rm \
   -e DATABASE_URL=sqlite:////app/data/etl.db \
@@ -42,3 +53,13 @@ docker run --rm \
   -v "$(pwd)/data":/app/data:Z \
   etl-ventas:latest
 ```
+### Ejecución en Windows (PowerShell)
+
+Para ejecutar el contenedor en PowerShell, asegúrate de estar en la raíz de tu proyecto y ejecuta el siguiente comando:
+
+```powershell
+docker run --rm `
+  -e DATABASE_URL=sqlite:////app/data/etl.db `
+  -v "${PWD}/logs:/app/logs" `
+  -v "${PWD}/data:/app/data" `
+  etl-ventas:latest
