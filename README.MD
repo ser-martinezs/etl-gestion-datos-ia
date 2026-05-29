@@ -62,3 +62,13 @@ docker run --rm `
   -v "${PWD}/logs:/app/logs" `
   -v "${PWD}/data:/app/data" `
   etl-ventas:latest
+```
+
+### CMD
+
+```cmd
+docker run --rm ^
+  -e DATABASE_URL=sqlite:////app/data/etl.db ^
+  -v "%cd%/logs:/app/logs" ^
+  -v "%cd%/data:/app/data" ^
+  etl-ventas:latest
