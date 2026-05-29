@@ -13,7 +13,7 @@ Ejecutar todo en conjunto con `python src/pipeline.py`.
 ### Opción A: URL de Conexión Directa (Recomendada)
 
 ```env
-SUPABASE_DATABASE_URL=postgresql://postgres:[TU_CONTRASEÑA]@[TU_SUBDOMINIO].supabase.co:5432/postgres?sslmode=require
+SUPABASE_DATABASE_URL=postgresql://postgres.[TU_ID_DE_PROYECTO]:[TU_CONTRASEÑA]@aws-1-us-east-2.pooler.supabase.com:6543/postgres
 ```
 
 ## Opción B: Componentes
