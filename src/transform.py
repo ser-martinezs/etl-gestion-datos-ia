@@ -1,8 +1,7 @@
 import os
-
 import pandas as pd
-
 from logging_utils import get_process_logger
+import extract
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -14,17 +13,11 @@ INVALID_FILE = os.path.join(BASE_DIR, "..", "data", "processed", "ventas_invalid
 EXPECTED_COLUMNS = ["id", "fecha", "producto", "cantidad", "precio", "ciudad"]
 REQUIRED_CLEAN_COLUMNS = ["fecha", "producto", "cantidad", "precio", "ciudad"]
 
+PRODUCTOS_VALIDOS = {"Aceite CBD 5%", "Flores THC 10%", "Cápsulas CBN"}
+CIUDADES_VALIDAS  = {"Santiago", "Viña del Mar", "Concepción"}
+
 logger_transform = get_process_logger("transform", "transform.log")
 logger_validation = get_process_logger("validation", "validation.log")
-
-
-def cargar_ventas(input_file=RAW_FILE):
-	df = pd.read_csv(input_file)
-	columnas_faltantes = [col for col in EXPECTED_COLUMNS if col not in df.columns]
-	if columnas_faltantes:
-		raise ValueError(f"Faltan columnas requeridas: {', '.join(columnas_faltantes)}")
-	return df[EXPECTED_COLUMNS].copy()
-
 
 def eliminar_duplicados(df):
 	return df.drop_duplicates()
@@ -100,6 +93,11 @@ def validar_fecha(df):
 	fecha_dt = _fecha_dt(df)
 	return fecha_dt.between("2020-01-01", "2030-12-31")
 
+def validar_producto(df):
+    return df["producto"].isin(PRODUCTOS_VALIDOS)
+
+def validar_ciudad(df):
+    return df["ciudad"].isin(CIUDADES_VALIDAS)
 
 def validar_cantidad(df):
 	return df["cantidad"].between(1, 1000)
@@ -107,15 +105,6 @@ def validar_cantidad(df):
 
 def validar_precio(df):
 	return df["precio"].between(1000, 200000)
-
-
-def validar_producto(df):
-	return df["producto"].fillna("").astype(str).str.strip().ne("")
-
-
-def validar_ciudad(df):
-	return df["ciudad"].fillna("").astype(str).str.strip().ne("")
-
 
 def validar_total(df):
 	return df["total"].gt(0)
@@ -157,20 +146,20 @@ def registrar_rechazados_por_validacion(df):
 
 
 def _motivo_invalidacion(fila):
-	motivos = []
-	if not fila["valid_fecha"]:
-		motivos.append("fecha_fuera_de_rango_o_invalida")
-	if not fila["valid_cantidad"]:
-		motivos.append("cantidad_fuera_de_rango_o_invalida")
-	if not fila["valid_precio"]:
-		motivos.append("precio_fuera_de_rango_o_invalido")
-	if not fila["valid_producto"]:
-		motivos.append("producto_vacio")
-	if not fila["valid_ciudad"]:
-		motivos.append("ciudad_vacia")
-	if not fila["valid_total"]:
-		motivos.append("total_menor_o_igual_a_cero")
-	return "; ".join(motivos) if motivos else pd.NA
+    motivos = []
+    if not fila["valid_fecha"]:
+        motivos.append("fecha_fuera_de_rango_o_invalida")
+    if not fila["valid_cantidad"]:
+        motivos.append("cantidad_fuera_de_rango_o_invalida")
+    if not fila["valid_precio"]:
+        motivos.append("precio_fuera_de_rango_o_invalido")
+    if not fila["valid_producto"]:
+        motivos.append("producto_no_en_catalogo")  
+    if not fila["valid_ciudad"]:
+        motivos.append("ciudad_no_en_catalogo")     
+    if not fila["valid_total"]:
+        motivos.append("total_menor_o_igual_a_cero")
+    return "; ".join(motivos) if motivos else pd.NA
 
 
 def exportar_registros(validos, invalidos, valid_file=VALID_FILE, invalid_file=INVALID_FILE):
@@ -188,14 +177,8 @@ def exportar_registros(validos, invalidos, valid_file=VALID_FILE, invalid_file=I
 	return validos, invalidos
 
 
-def transformar_ventas(input_file=RAW_FILE, output_file=PROCESSED_FILE):
-	"""Limpia, transforma y valida ventas para su uso clínico-comercial.
+def transformar_ventas(df, output_file=PROCESSED_FILE):
 
-	Devuelve un DataFrame con las columnas normalizadas, una columna de total y
-	una columna de validación booleana. Los errores de conversión se convierten
-	en NaN para no detener el pipeline.
-	"""
-	df = cargar_ventas(input_file)
 	df, rechazados_limpieza = limpiar_ventas(df)
 	df = estandarizar_fechas(df)
 	df = convertir_numericos(df)
@@ -210,8 +193,8 @@ def transformar_ventas(input_file=RAW_FILE, output_file=PROCESSED_FILE):
 	df["fuente"] = "transformacion"
 	rechazados_validacion = registrar_rechazados_por_validacion(df)
 	df_rechazados = pd.concat([rechazados_limpieza, rechazados_validacion], ignore_index=True)
+
 	if not df_rechazados.empty:
-		df_rechazados = df_rechazados.drop_duplicates(subset=EXPECTED_COLUMNS, keep="first")
 		if "estado_calidad" not in df_rechazados.columns:
 			df_rechazados["estado_calidad"] = "error"
 		if "fuente" not in df_rechazados.columns:
@@ -223,21 +206,42 @@ def transformar_ventas(input_file=RAW_FILE, output_file=PROCESSED_FILE):
 		os.makedirs(os.path.dirname(output_file), exist_ok=True)
 		df.to_csv(output_file, index=False)
 
-	exportar_registros(df, df_rechazados)
+	df_verdaderos_validos = df[df["es_valido"]].copy()
+	exportar_registros(df_verdaderos_validos, df_rechazados)
+
 	logger_transform.info("Transformación finalizada con %s registros.", len(df))
 
 	return df
 
 
 if __name__ == "__main__":
-	resultado = transformar_ventas()
-	logger_transform.info("Ejecución completada desde línea de comandos.")
-	print(
-		"Transformación completada. "
-		f"Registros finales: {len(resultado)}. "
-		f"Válidos: {int(resultado['es_valido'].sum())}. "
-		f"Inválidos: {int((~resultado['es_valido']).sum())}"
-	)
+    df_original = extract.cargar_ventas()
+    total_ingresado = len(df_original)
+    
+    resultado_df = transformar_ventas(df_original)
+    
+    df_validos_reales = pd.read_csv(VALID_FILE)
+    df_invalidos_reales = pd.read_csv(INVALID_FILE)
+    
+    total_validos = len(df_validos_reales)
+    total_invalidos_absolutos = len(df_invalidos_reales)
+    
+    total_descartados_limpieza = len(df_invalidos_reales[df_invalidos_reales["fuente"] == "limpieza"])
+    total_descartados_negocio = len(df_invalidos_reales[df_invalidos_reales["fuente"] == "transformacion"])
+    
+    logger_transform.info("Ejecución completada desde línea de comandos.")
+    
+    print("\n" + "="*55)
+    print("   REPORTE DE CALIDAD DE DATOS (MÉTRICAS DEL PIPELINE)")
+    print("="*55)
+    print(f"Total registros recibidos de la ingesta : {total_ingresado}")
+    print(f"Registros guardados en ventas_validas   : {total_validos}")
+    print(f"Registros guardados en ventas_invalidas : {total_invalidos_absolutos}")
+    print("-"*55)
+    print(" DETALLE DE DESCARTES COMPROBADOS EN ARCHIVO:")
+    print(f"  [x] Por Limpieza Inicial (Duplicados/Nulos) : {total_descartados_limpieza}")
+    print(f"  [x] Por Reglas de Negocio (Rangos/Catálogo) : {total_descartados_negocio}")
+    print("="*55 + "\n")
 
 
 
